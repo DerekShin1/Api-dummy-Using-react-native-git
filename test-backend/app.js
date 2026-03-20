@@ -16,4 +16,5 @@ export default function App() {
         <Text key={user.id}>{user.name}</Text>
       ))}
     </View>
-  );
+  )
+}
