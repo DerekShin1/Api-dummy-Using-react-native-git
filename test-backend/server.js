@@ -8,8 +8,8 @@ app.use(express.json());
 // Example endpoint
 app.get("/api/users", (req, res) => {
   res.json([
-    { id: 1, name: "John" }, change to backend team
-    { id: 2, name: "Sarah" }
+    { id: 1, name: "Yi Jin (John)" }, 
+    { id: 2, name: "Angel Trujillo" }
   ]);
 });
 
