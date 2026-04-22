@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, Button, Alert } from "react-native";
 import { scanDevicesMock } from "../api/api";
+import { useSettings } from "../context/settingpagecontext";
 
 export default function Home() {
   const [devices, setDevices] = useState([]);
@@ -13,11 +14,14 @@ export default function Home() {
     } catch (e) {
       Alert.alert("Dummy Scan Failed", e.message);
     }
+
+    const { settings } = useSettings();
+    const isDark = settings.theme === 'dark'
   };
 
   return (
-    <View style={{ padding: 16, marginTop: 50 }}>
-      <Text style={{ fontSize: 22, fontWeight: "600" }}>Home (Dummy Test)</Text>
+    <View style={{ padding: 16, marginTop: 50, backgroundColor: isDark ? '#0F0F0F' : 'FFFFFF', flex: 1, }}>
+      <Text style={{ fontSize: settings.fontSize === 'lg' ? 20 : 16, color: isDark ? '#FFFFFF' : '#000000', fontWeight: '600' }}>Home (Dummy Test)</Text>
 
       <View style={{ marginTop: 12 }}>
         <Button title="Run Dummy Scan" onPress={runDummyScan} />

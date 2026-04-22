@@ -1,476 +1,494 @@
-import React from "react";
-import { useState } from "react";
+import React, { useMemo, useState } from 'react';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 
-type Theme = "light" | "dark";
-type FontSize = "sm" | "md" | "lg" | "xl";
-type ContrastMode = "normal" | "high";
+import { useSettings } from '../src/context/settingpagecontext';
+import { fontSizeMap } from '@/constants/theme';
 
-interface Settings {
-  theme: Theme;
-  fontSize: FontSize;
-  contrastMode: ContrastMode;
-  reduceMotion: boolean;
-  screenReader: boolean;
-  focusIndicators: boolean;
-  language: string;
-  notifications: boolean;
-  adaptiveControls: boolean;
-}
-
-const defaultSettings: Settings = {
-  theme: "light",
-  fontSize: "md",
-  contrastMode: "normal",
-  reduceMotion: false,
-  screenReader: false,
-  focusIndicators: true,
-  language: "en",
-  notifications: true,
-  adaptiveControls: true,
-};
-
-const ORANGE = "#F97316";
-const ORANGE_DARK = "#EA6A0A";
-const ORANGE_LIGHT = "#FED7AA";
+type Theme = 'light' | 'dark';
+type FontSize = 'sm' | 'md' | 'lg' | 'xl';
+type ContrastMode = 'normal' | 'high';
+type TabKey = 'general' | 'accessibility';
 
 export default function SettingsMenu() {
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
-  const [activeTab, setActiveTab] = useState<"general" | "accessibility">("general");
+  const { settings, updateSetting, resetSettings } = useSettings();
+  const [activeTab, setActiveTab] = useState<TabKey>('general');
   const [saved, setSaved] = useState(false);
 
-  const isDark = settings.theme === "dark";
+  const textSize = fontSizeMap[settings.fontSize as FontSize] ?? fontSizeMap.md;
+  const isDark = settings.theme === 'dark';
 
-  const colors = {
-    bg: isDark ? "#0F0F0F" : "#FAF8F5",
-    surface: isDark ? "#1A1A1A" : "#FFFFFF",
-    surfaceAlt: isDark ? "#242424" : "#F5F0EA",
-    border: isDark ? "#2E2E2E" : "#E8E0D4",
-    text: isDark ? "#F5F0EA" : "#1A1007",
-    textMuted: isDark ? "#8A8070" : "#9A8A70",
-    accent: ORANGE,
-    accentHover: ORANGE_DARK,
-    accentLight: isDark ? "#431A00" : ORANGE_LIGHT,
+  const ios = {
+    background: isDark ? '#000000' : '#F2F2F7',
+    card: isDark ? '#1C1C1E' : '#FFFFFF',
+    groupedCard: isDark ? '#1C1C1E' : '#FFFFFF',
+    separator: isDark ? '#38383A' : '#C6C6C8',
+    label: isDark ? '#FFFFFF' : '#000000',
+    secondaryLabel: isDark ? '#8E8E93' : '#6D6D72',
+    tertiaryFill: isDark ? '#2C2C2E' : '#E9E9ED',
+    accent: '#007AFF',
+    destructive: '#FF3B30',
   };
 
-  const set = <K extends keyof Settings>(key: K, val: Settings[K]) =>
-    setSettings((s) => ({ ...s, [key]: val }));
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        root: {
+          flex: 1,
+          backgroundColor: ios.background,
+        },
+        content: {
+          paddingBottom: 40,
+        },
+        navHeader: {
+          paddingHorizontal: 20,
+          paddingTop: 18,
+          paddingBottom: 12,
+          backgroundColor: ios.background,
+        },
+        navTitle: {
+          fontSize: 34,
+          fontWeight: '700',
+          color: ios.label,
+          letterSpacing: -0.6,
+        },
+        navSubtitle: {
+          marginTop: 4,
+          fontSize: 15,
+          color: ios.secondaryLabel,
+        },
+        segmentedWrap: {
+          marginHorizontal: 16,
+          marginTop: 10,
+          marginBottom: 22,
+          backgroundColor: ios.tertiaryFill,
+          borderRadius: 10,
+          padding: 2,
+          flexDirection: 'row',
+        },
+        segmentedButton: {
+          flex: 1,
+          paddingVertical: 8,
+          borderRadius: 8,
+        },
+        segmentedButtonActive: {
+          backgroundColor: ios.card,
+        },
+        segmentedText: {
+          textAlign: 'center',
+          fontSize: 13,
+          fontWeight: '600',
+          color: ios.secondaryLabel,
+        },
+        segmentedTextActive: {
+          color: ios.label,
+        },
+        sectionHeader: {
+          paddingHorizontal: 20,
+          paddingBottom: 6,
+          paddingTop: 8,
+        },
+        sectionHeaderText: {
+          fontSize: 13,
+          fontWeight: '600',
+          color: ios.secondaryLabel,
+          textTransform: 'uppercase',
+        },
+        group: {
+          marginHorizontal: 16,
+          marginBottom: 28,
+          backgroundColor: ios.groupedCard,
+          borderRadius: 14,
+          overflow: 'hidden',
+        },
+        row: {
+          minHeight: 50,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: ios.groupedCard,
+        },
+        rowLeft: {
+          flex: 1,
+          paddingRight: 12,
+        },
+        rowTitle: {
+          fontSize: textSize,
+          color: ios.label,
+        },
+        rowDescription: {
+          marginTop: 2,
+          fontSize: Math.max(12, textSize - 2),
+          color: ios.secondaryLabel,
+        },
+        separatorInset: {
+          height: StyleSheet.hairlineWidth,
+          backgroundColor: ios.separator,
+          marginLeft: 16,
+        },
+        inlineChoices: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: 8,
+          marginTop: 10,
+        },
+        chip: {
+          paddingHorizontal: 12,
+          paddingVertical: 7,
+          borderRadius: 999,
+          backgroundColor: ios.tertiaryFill,
+        },
+        chipActive: {
+          backgroundColor: ios.accent,
+        },
+        chipText: {
+          fontSize: 13,
+          fontWeight: '600',
+          color: ios.label,
+        },
+        chipTextActive: {
+          color: '#FFFFFF',
+        },
+        infoText: {
+          marginHorizontal: 20,
+          marginTop: -18,
+          marginBottom: 20,
+          fontSize: 13,
+          color: ios.secondaryLabel,
+          lineHeight: 18,
+        },
+        footerArea: {
+          marginHorizontal: 16,
+          gap: 12,
+        },
+        actionButton: {
+          minHeight: 50,
+          borderRadius: 14,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: ios.card,
+        },
+        actionButtonPrimary: {
+          backgroundColor: ios.accent,
+        },
+        actionButtonDestructive: {
+          backgroundColor: ios.card,
+        },
+        actionText: {
+          fontSize: textSize,
+          fontWeight: '600',
+          color: ios.label,
+        },
+        actionTextPrimary: {
+          color: '#FFFFFF',
+        },
+        actionTextDestructive: {
+          color: ios.destructive,
+        },
+        savedText: {
+          textAlign: 'center',
+          fontSize: 13,
+          color: ios.secondaryLabel,
+        },
+      }),
+    [
+      ios.background,
+      ios.card,
+      ios.groupedCard,
+      ios.separator,
+      ios.label,
+      ios.secondaryLabel,
+      ios.tertiaryFill,
+      textSize,
+    ]
+  );
 
-  const handleSave = () => {
+  const saveFeedback = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const handleReset = () => setSettings(defaultSettings);
+  const renderChoiceChips = (
+    values: string[],
+    currentValue: string,
+    onSelect: (value: string) => void,
+    labels?: Record<string, string>
+  ) => (
+    <View style={styles.inlineChoices}>
+      {values.map((value) => {
+        const selected = currentValue === value;
+        return (
+          <Pressable
+            key={value}
+            style={[styles.chip, selected && styles.chipActive]}
+            onPress={() => onSelect(value)}>
+            <Text style={[styles.chipText, selected && styles.chipTextActive]}>
+              {labels?.[value] ?? value}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
 
-  const fontSizeMap: Record<FontSize, string> = { sm: "13px", md: "15px", lg: "17px", xl: "20px" };
-  const fontSizeLabel: Record<FontSize, string> = { sm: "Small", md: "Medium", lg: "Large", xl: "X-Large" };
+  const GeneralSection = () => (
+    <>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderText}>Appearance</Text>
+      </View>
 
-  const styles: Record<string, React.CSSProperties> = {
-    root: {
-      minHeight: "100vh",
-      background: colors.bg,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontFamily: "'Georgia', 'Times New Roman', serif",
-      fontSize: fontSizeMap[settings.fontSize],
-      transition: "background 0.3s ease",
-      padding: "24px 16px",
-    },
-    panel: {
-      background: colors.surface,
-      border: `1.5px solid ${colors.border}`,
-      borderRadius: "20px",
-      width: "100%",
-      maxWidth: "520px",
-      boxShadow: isDark
-        ? "0 24px 60px rgba(0,0,0,0.6)"
-        : "0 24px 60px rgba(200,160,80,0.12)",
-      overflow: "hidden",
-    },
-    header: {
-      padding: "28px 32px 0",
-      borderBottom: `1px solid ${colors.border}`,
-      paddingBottom: "0",
-    },
-    titleRow: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: "20px",
-    },
-    title: {
-      fontSize: "1.5em",
-      fontWeight: "700",
-      color: colors.text,
-      letterSpacing: "-0.02em",
-      margin: 0,
-    },
-    gear: {
-      fontSize: "1.3em",
-      color: colors.accent,
-    },
-    tabs: {
-      display: "flex",
-      gap: "4px",
-    },
-    body: {
-      padding: "28px 32px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "24px",
-    },
-    section: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "12px",
-    },
-    sectionLabel: {
-      fontSize: "0.72em",
-      fontWeight: "700",
-      color: colors.accent,
-      textTransform: "uppercase",
-      letterSpacing: "0.12em",
-    },
-    card: {
-      background: colors.surfaceAlt,
-      borderRadius: "12px",
-      border: `1px solid ${colors.border}`,
-      overflow: "hidden",
-    },
-    row: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: "14px 16px",
-      borderBottom: `1px solid ${colors.border}`,
-    },
-    rowLast: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: "14px 16px",
-    },
-    rowLabel: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "2px",
-    },
-    rowTitle: {
-      color: colors.text,
-      fontWeight: "600",
-      fontSize: "0.92em",
-    },
-    rowDesc: {
-      color: colors.textMuted,
-      fontSize: "0.76em",
-    },
-    themeToggle: {
-      display: "flex",
-      gap: "6px",
-    },
-    fontRow: {
-      display: "flex",
-      gap: "6px",
-    },
-    contrastRow: {
-      display: "flex",
-      gap: "6px",
-    },
-    select: {
-      background: colors.surfaceAlt,
-      border: `1.5px solid ${colors.border}`,
-      color: colors.text,
-      borderRadius: "8px",
-      padding: "6px 10px",
-      fontFamily: "inherit",
-      fontSize: "0.85em",
-      cursor: "pointer",
-      outline: "none",
-    },
-    footer: {
-      padding: "0 32px 28px",
-      display: "flex",
-      gap: "10px",
-    },
-    saveBtn: {
-      flex: 1,
-      padding: "13px",
-      background: saved ? "#16A34A" : colors.accent,
-      border: "none",
-      borderRadius: "12px",
-      color: "#fff",
-      fontFamily: "inherit",
-      fontSize: "0.92em",
-      fontWeight: "700",
-      cursor: "pointer",
-      letterSpacing: "0.02em",
-      transition: "background 0.25s ease",
-    },
-    resetBtn: {
-      padding: "13px 18px",
-      background: "transparent",
-      border: `1.5px solid ${colors.border}`,
-      borderRadius: "12px",
-      color: colors.textMuted,
-      fontFamily: "inherit",
-      fontSize: "0.85em",
-      fontWeight: "600",
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-    },
-  };
+      <View style={styles.group}>
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.rowTitle}>Theme</Text>
+            {renderChoiceChips(
+              ['light', 'dark'],
+              settings.theme,
+              (value) => updateSetting('theme', value as Theme),
+              { light: 'Light', dark: 'Dark' }
+            )}
+          </View>
+        </View>
+      </View>
 
-  const dynStyles = {
-    tab: (active: boolean): React.CSSProperties => ({
-      padding: "10px 20px",
-      border: "none",
-      background: active ? colors.accent : "transparent",
-      color: active ? "#fff" : colors.textMuted,
-      borderRadius: "10px 10px 0 0",
-      cursor: "pointer",
-      fontFamily: "inherit",
-      fontSize: "0.88em",
-      fontWeight: active ? "700" : "500",
-      letterSpacing: "0.01em",
-      transition: "all 0.2s ease",
-    }),
-    toggleTrack: (on: boolean): React.CSSProperties => ({
-      width: "42px",
-      height: "24px",
-      borderRadius: "12px",
-      background: on ? colors.accent : (isDark ? "#3A3530" : "#D4C8B8"),
-      position: "relative",
-      cursor: "pointer",
-      transition: "background 0.25s ease",
-      border: "none",
-      flexShrink: 0,
-    }),
-    toggleThumb: (on: boolean): React.CSSProperties => ({
-      position: "absolute",
-      top: "3px",
-      left: on ? "21px" : "3px",
-      width: "18px",
-      height: "18px",
-      borderRadius: "50%",
-      background: "#fff",
-      transition: "left 0.25s ease",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
-    }),
-    themeBtn: (active: boolean): React.CSSProperties => ({
-      padding: "6px 14px",
-      border: `1.5px solid ${active ? colors.accent : colors.border}`,
-      background: active ? colors.accentLight : "transparent",
-      color: active ? (isDark ? colors.accent : ORANGE_DARK) : colors.textMuted,
-      borderRadius: "8px",
-      cursor: "pointer",
-      fontFamily: "inherit",
-      fontSize: "0.82em",
-      fontWeight: active ? "700" : "500",
-      transition: "all 0.2s ease",
-    }),
-    fontBtn: (active: boolean): React.CSSProperties => ({
-      flex: 1,
-      padding: "7px 4px",
-      border: `1.5px solid ${active ? colors.accent : colors.border}`,
-      background: active ? colors.accentLight : "transparent",
-      color: active ? (isDark ? colors.accent : ORANGE_DARK) : colors.textMuted,
-      borderRadius: "8px",
-      cursor: "pointer",
-      fontFamily: "inherit",
-      fontSize: "0.8em",
-      fontWeight: active ? "700" : "500",
-      transition: "all 0.2s ease",
-      textAlign: "center" as const,
-    }),
-    contrastBtn: (active: boolean): React.CSSProperties => ({
-      flex: 1,
-      padding: "7px 4px",
-      border: `1.5px solid ${active ? colors.accent : colors.border}`,
-      background: active ? colors.accentLight : "transparent",
-      color: active ? (isDark ? colors.accent : ORANGE_DARK) : colors.textMuted,
-      borderRadius: "8px",
-      cursor: "pointer",
-      fontFamily: "inherit",
-      fontSize: "0.82em",
-      fontWeight: active ? "700" : "500",
-      transition: "all 0.2s ease",
-      textAlign: "center" as const,
-    }),
-  };
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderText}>Preferences</Text>
+      </View>
 
-  const Toggle = ({ on, onChange }: { on: boolean; onChange: () => void }) => (
-    <button
-      role="switch"
-      aria-checked={on}
-      onClick={onChange}
-      style={dynStyles.toggleTrack(on)}
-    >
-      <span style={dynStyles.toggleThumb(on)} />
-    </button>
+      <View style={styles.group}>
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.rowTitle}>Notifications</Text>
+            <Text style={styles.rowDescription}>
+              Allow alerts and updates from the app
+            </Text>
+          </View>
+          <Switch
+            value={!!settings.notifications}
+            onValueChange={(value) => updateSetting('notifications', value)}
+          />
+        </View>
+      </View>
+    </>
+  );
+
+  const AccessibilitySection = () => (
+    <>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderText}>Vision</Text>
+      </View>
+
+      <View style={styles.group}>
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.rowTitle}>Text Size</Text>
+            <Text style={styles.rowDescription}>
+              Adjust text across the app for easier reading
+            </Text>
+            {renderChoiceChips(
+              ['sm', 'md', 'lg', 'xl'],
+              settings.fontSize,
+              (value) => updateSetting('fontSize', value as FontSize),
+              { sm: 'Small', md: 'Medium', lg: 'Large', xl: 'Extra Large' }
+            )}
+          </View>
+        </View>
+
+        <View style={styles.separatorInset} />
+
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.rowTitle}>Increase Contrast</Text>
+            <Text style={styles.rowDescription}>
+              Improve color separation between interface elements
+            </Text>
+            {renderChoiceChips(
+              ['normal', 'high'],
+              settings.contrastMode,
+              (value) => updateSetting('contrastMode', value as ContrastMode),
+              { normal: 'Off', high: 'On' }
+            )}
+          </View>
+        </View>
+
+        <View style={styles.separatorInset} />
+
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.rowTitle}>Focus Indicators</Text>
+            <Text style={styles.rowDescription}>
+              Make focused and selected items easier to identify
+            </Text>
+          </View>
+          <Switch
+            value={!!settings.focusIndicators}
+            onValueChange={(value) => updateSetting('focusIndicators', value)}
+          />
+        </View>
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderText}>Mobility</Text>
+      </View>
+
+      <View style={styles.group}>
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.rowTitle}>Reduce Motion</Text>
+            <Text style={styles.rowDescription}>
+              Reduce animations and motion effects throughout the app
+            </Text>
+          </View>
+          <Switch
+            value={!!settings.reduceMotion}
+            onValueChange={(value) => updateSetting('reduceMotion', value)}
+          />
+        </View>
+
+        <View style={styles.separatorInset} />
+
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.rowTitle}>Larger Touch Targets</Text>
+            <Text style={styles.rowDescription}>
+              Increase control touch areas for easier interaction
+            </Text>
+          </View>
+          <Switch
+            value={!!settings.adaptiveControls}
+            onValueChange={(value) => updateSetting('adaptiveControls', value)}
+          />
+        </View>
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderText}>Hearing</Text>
+      </View>
+
+      <View style={styles.group}>
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.rowTitle}>No Hearing Settings Yet</Text>
+            <Text style={styles.rowDescription}>
+              Add options here later such as captions, sound balance, or visual
+              alerts
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderText}>Speech</Text>
+      </View>
+
+      <View style={styles.group}>
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.rowTitle}>Screen Reader Support</Text>
+            <Text style={styles.rowDescription}>
+              Improve labels, announcements, and navigation for spoken feedback
+              tools
+            </Text>
+          </View>
+          <Switch
+            value={!!settings.screenReader}
+            onValueChange={(value) => updateSetting('screenReader', value)}
+          />
+        </View>
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderText}>Cognitive</Text>
+      </View>
+
+      <View style={styles.group}>
+        <View style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text style={styles.rowTitle}>No Cognitive Settings Yet</Text>
+            <Text style={styles.rowDescription}>
+              Add options here later such as simplified layouts, reading aids,
+              or reduced distractions
+            </Text>
+          </View>
+        </View>
+      </View>
+    </>
   );
 
   return (
-    <div style={styles.root}>
-      <div style={styles.panel}>
-        {/* Header */}
-        <div style={styles.header}>
-          <div style={styles.titleRow}>
-            <h1 style={styles.title}>Settings</h1>
-          </div>
-          <div style={styles.tabs}>
-            {(["general", "accessibility"] as const).map((tab) => (
-              <button
-                key={tab}
-                style={dynStyles.tab(activeTab === tab)}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab === "general" ? "General" : "Accessibility"}
-              </button>
-            ))}
-          </div>
-        </div>
+    <ScrollView style={styles.root} contentContainerStyle={styles.content}>
+      <View style={styles.navHeader}>
+        <Text style={styles.navTitle}>Settings</Text>
+        <Text style={styles.navSubtitle}>
+          Manage how the app looks and behaves.
+        </Text>
+      </View>
 
-        {/* Body */}
-        <div style={styles.body}>
-          {activeTab === "general" && (
-            <>
-              <div style={styles.section}>
-                <span style={styles.sectionLabel}>Appearance</span>
-                <div style={styles.card}>
-                  <div style={styles.row}>
-                    <div style={styles.rowLabel}>
-                      <span style={styles.rowTitle}>Theme</span>
-                      <span style={styles.rowDesc}>Choose your preferred colour scheme</span>
-                    </div>
-                    <div style={styles.themeToggle}>
-                      {(["light", "dark"] as Theme[]).map((t) => (
-                        <button
-                          key={t}
-                          style={dynStyles.themeBtn(settings.theme === t)}
-                          onClick={() => set("theme", t)}
-                        >
-                          {t === "light" ? "Light" : "Dark"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={styles.rowLast}>
-                    <div style={styles.rowLabel}>
-                      <span style={styles.rowTitle}>Language</span>
-                      <span style={styles.rowDesc}>Select display language</span>
-                    </div>
-                    <select
-                      style={styles.select}
-                      value={settings.language}
-                      onChange={(e) => set("language", e.target.value)}
-                    >
-                      <option value="en">English</option>
-                      <option value="es">Español</option>
-                      <option value="fr">Français</option>
-                      <option value="de">Deutsch</option>
-                      <option value="ja">日本語</option>
-                      <option value="zh">中文</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+      <View style={styles.segmentedWrap}>
+        <Pressable
+          style={[
+            styles.segmentedButton,
+            activeTab === 'general' && styles.segmentedButtonActive,
+          ]}
+          onPress={() => setActiveTab('general')}>
+          <Text
+            style={[
+              styles.segmentedText,
+              activeTab === 'general' && styles.segmentedTextActive,
+            ]}>
+            General
+          </Text>
+        </Pressable>
 
-              <div style={styles.section}>
-                <span style={styles.sectionLabel}>Preferences</span>
-                <div style={styles.card}>
-                  {[
-                    { key: "notifications" as const, title: "Notifications", desc: "Receive app notifications" },
-                    { key: "adaptiveControls" as const, title: "Adaptive Equipment Mode", desc: "Optimise for paddle grips, outriggers & adaptive kayak gear" },
-                  ].map(({ key, title, desc }, i, arr) => (
-                    <div key={key} style={i < arr.length - 1 ? styles.row : styles.rowLast}>
-                      <div style={styles.rowLabel}>
-                        <span style={styles.rowTitle}>{title}</span>
-                        <span style={styles.rowDesc}>{desc}</span>
-                      </div>
-                      <Toggle on={settings[key] as boolean} onChange={() => set(key, !settings[key])} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
+        <Pressable
+          style={[
+            styles.segmentedButton,
+            activeTab === 'accessibility' && styles.segmentedButtonActive,
+          ]}
+          onPress={() => setActiveTab('accessibility')}>
+          <Text
+            style={[
+              styles.segmentedText,
+              activeTab === 'accessibility' && styles.segmentedTextActive,
+            ]}>
+            Accessibility
+          </Text>
+        </Pressable>
+      </View>
 
-          {activeTab === "accessibility" && (
-            <>
-              <div style={styles.section}>
-                <span style={styles.sectionLabel}>Vision</span>
-                <div style={styles.card}>
-                  <div style={styles.row}>
-                    <div style={styles.rowLabel}>
-                      <span style={styles.rowTitle}>Text Size</span>
-                      <span style={styles.rowDesc}>Adjust interface font size</span>
-                    </div>
-                    <div style={styles.fontRow}>
-                      {(["sm", "md", "lg", "xl"] as FontSize[]).map((s) => (
-                        <button
-                          key={s}
-                          style={dynStyles.fontBtn(settings.fontSize === s)}
-                          onClick={() => set("fontSize", s)}
-                          title={fontSizeLabel[s]}
-                        >
-                          {fontSizeLabel[s]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={styles.rowLast}>
-                    <div style={styles.rowLabel}>
-                      <span style={styles.rowTitle}>Contrast</span>
-                      <span style={styles.rowDesc}>Increase colour contrast for readability</span>
-                    </div>
-                    <div style={styles.contrastRow}>
-                      {(["normal", "high"] as ContrastMode[]).map((c) => (
-                        <button
-                          key={c}
-                          style={dynStyles.contrastBtn(settings.contrastMode === c)}
-                          onClick={() => set("contrastMode", c)}
-                        >
-                          {c === "normal" ? "Normal" : "High"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+      {activeTab === 'general' ? <GeneralSection /> : <AccessibilitySection />}
 
-              <div style={styles.section}>
-                <span style={styles.sectionLabel}>Motor & Cognitive</span>
-                <div style={styles.card}>
-                  {[
-                    { key: "reduceMotion" as const, title: "Reduce Motion", desc: "Minimise animations and transitions" },
-                    { key: "focusIndicators" as const, title: "Focus Indicators", desc: "Show visible keyboard focus rings" },
-                    { key: "screenReader" as const, title: "Screen Reader Mode", desc: "Optimise layout for assistive technology" },
-                  ].map(({ key, title, desc }, i, arr) => (
-                    <div key={key} style={i < arr.length - 1 ? styles.row : styles.rowLast}>
-                      <div style={styles.rowLabel}>
-                        <span style={styles.rowTitle}>{title}</span>
-                        <span style={styles.rowDesc}>{desc}</span>
-                      </div>
-                      <Toggle on={settings[key] as boolean} onChange={() => set(key, !settings[key])} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+      <Text style={styles.infoText}>
+        Changes apply across the app immediately while it is open.
+      </Text>
 
-        {/* Footer */}
-        <div style={styles.footer}>
-          <button style={styles.saveBtn} onClick={handleSave}>
-            {saved ? "Saved!" : "Save Changes"}
-          </button>
-          <button style={styles.resetBtn} onClick={handleReset}>
-            Reset
-          </button>
-        </div>
-      </div>
-    </div>
+      <View style={styles.footerArea}>
+        {saved ? <Text style={styles.savedText}>Saved</Text> : null}
+
+        <Pressable
+          style={[styles.actionButton, styles.actionButtonPrimary]}
+          onPress={saveFeedback}>
+          <Text style={[styles.actionText, styles.actionTextPrimary]}>
+            Save
+          </Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.actionButton, styles.actionButtonDestructive]}
+          onPress={resetSettings}>
+          <Text style={[styles.actionText, styles.actionTextDestructive]}>
+            Reset All Settings
+          </Text>
+        </Pressable>
+      </View>
+    </ScrollView>
   );
 }
